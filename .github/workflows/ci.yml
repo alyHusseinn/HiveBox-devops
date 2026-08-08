@@ -7,21 +7,29 @@ on:
     branches: [main]
 
 jobs:
-  quality:
+  ci:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.20.0
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
+          cache: pnpm
 
       - name: Install dependencies
-        run: npm ci
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint code
+        run: pnpm run lint
 
       - name: Lint Dockerfile
         uses: hadolint/hadolint-action@v3.1.0
@@ -29,7 +37,7 @@ jobs:
           dockerfile: Dockerfile
 
       - name: Run unit tests
-        run: npm test
+        run: pnpm test
 
       - name: Build Docker image
         run: docker build -t hivebox .
